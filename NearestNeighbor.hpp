@@ -77,6 +77,6 @@ std::vector<Node> readData(const std::string& filename) {
         nodes.emplace_back(id, x, y);
     }
 
-    std::cout << "Number of nodes read: " << nodes.size() << std::endl;
+    // std::cout << "Number of nodes read: " << nodes.size() << std::endl; // Tested to see if all nodes were visited
     return nodes;
 }
