@@ -1,63 +1,32 @@
-#include "Node.hpp"
 #include <vector>
-#include <string>
 #include <fstream>
-#include <sstream>
 #include <iostream>
+#include <sstream>
 #include <chrono>
 #include <limits>
+#include <cmath>
 
-// Forward declaration
-std::vector<Node> readData(const std::string& filename);
+class Node {
+public:
+    Node(int id, double x, double y) : id_(id), x_(x), y_(y) {}
 
-void nearestNeighbor(const std::string& filename) {
-    auto nodes = readData(filename);
-    int n = nodes.size();
-    std::vector<bool> visited(n, false);
-    std::vector<int> path;
-    double totalDistance = 0.0;
-    int current = 0;
-    path.push_back(nodes[current].getId());
-    visited[current] = true;
+    int getId() const { return id_; }
+    double getX() const { return x_; }
+    double getY() const { return y_; }
 
-    auto startTime = std::chrono::high_resolution_clock::now();
-
-    for (int i = 1; i < n; ++i) {
-        int nearest = -1;
-        double minDist = std::numeric_limits<double>::max();
-
-        for (int j = 0; j < n; ++j) {
-            if (!visited[j]) {
-                double dist = Node::distance(nodes[current], nodes[j]);
-                if (dist < minDist) {
-                    nearest = j;
-                    minDist = dist;
-                }
-            }
-        }
-
-        visited[nearest] = true;
-        totalDistance += minDist;
-        path.push_back(nodes[nearest].getId());
-        current = nearest;
+    static double distance(const Node& a, const Node& b) {
+        double dx = a.x_ - b.x_;
+        double dy = a.y_ - b.y_;
+        return sqrt(dx * dx + dy * dy);
     }
 
-    totalDistance += Node::distance(nodes[current], nodes[0]); // Distance back to the starting node
-    path.push_back(nodes[0].getId());
+private:
+    int id_;
+    double x_;
+    double y_;
+};
 
-    auto endTime = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
-
-    // Output the path, total distance, and time taken
-    for (int id : path) {
-        std::cout << id << " ";
-    }
-    std::cout << std::endl;
-    std::cout << "Total Distance: " << totalDistance << std::endl;
-    std::cout << "Time in ms: " << duration.count() << std::endl;
-}
-
-std::vector<Node> readData(const std::string& filename) {
+std::vector<Node> readData(const std::string &filename) {
     std::ifstream file(filename);
     if (!file.is_open()) {
         std::cerr << "Failed to open file: " << filename << std::endl;
@@ -77,6 +46,51 @@ std::vector<Node> readData(const std::string& filename) {
         nodes.emplace_back(id, x, y);
     }
 
-    // std::cout << "Number of nodes read: " << nodes.size() << std::endl; // Tested to see if all nodes were visited
     return nodes;
+}
+
+void nearestNeighbor(const std::string &filename) {
+    auto nodes = readData(filename);
+    std::vector<bool> visited(nodes.size(), false);
+    std::vector<int> path;
+    double totalDistance = 0.0;
+    auto current = nodes.begin();
+    path.push_back(current->getId());
+    visited[current - nodes.begin()] = true;
+
+    auto startTime = std::chrono::high_resolution_clock::now();
+
+    for (size_t i = 1; i < nodes.size(); ++i) {
+        auto nearest = nodes.end();
+        double minDist = std::numeric_limits<double>::max();
+
+        for (auto it = nodes.begin(); it != nodes.end(); ++it) {
+            if (!visited[it - nodes.begin()]) {
+                double dist = Node::distance(*current, *it);
+                if (dist < minDist) {
+                    nearest = it;
+                    minDist = dist;
+                }
+            }
+        }
+
+        visited[nearest - nodes.begin()] = true;
+        totalDistance += minDist;
+        path.push_back(nearest->getId());
+        current = nearest;
+    }
+
+    totalDistance += Node::distance(*current, nodes.front()); // Distance back to the starting node
+    path.push_back(nodes.front().getId());
+
+    auto endTime = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+
+    // Output the path, total distance, and time taken
+    for (int id : path) {
+        std::cout << id << " ";
+    }
+    std::cout << std::endl;
+    std::cout << "Total Distance: " << totalDistance << std::endl;
+    std::cout << "Time in ms: " << duration.count() << std::endl;
 }
