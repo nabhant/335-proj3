@@ -1,5 +1,4 @@
 // main.cpp
-
 #include "NearestNeighbor.hpp"
 
 int main() {

@@ -5,26 +5,8 @@
 #include <chrono>
 #include <limits>
 #include <cmath>
+#include "Node.hpp"
 
-class Node {
-public:
-    Node(int id, double x, double y) : id_(id), x_(x), y_(y) {}
-
-    int getId() const { return id_; }
-    double getX() const { return x_; }
-    double getY() const { return y_; }
-
-    static double distance(const Node& a, const Node& b) {
-        double dx = a.x_ - b.x_;
-        double dy = a.y_ - b.y_;
-        return sqrt(dx * dx + dy * dy);
-    }
-
-private:
-    int id_;
-    double x_;
-    double y_;
-};
 
 std::vector<Node> readData(const std::string &filename) {
     std::ifstream file(filename);
